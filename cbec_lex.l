@@ -53,7 +53,7 @@ extern int cbec_inp_count;
 
 extern YYSTYPE cbec_lval;
 
-#define echo		/* ECHO */
+#define echo		ECHO 
 #define RN(s)		cbec_lex_copy_tok(yytext); return(s)
 #define CRN(s)		cbec_lval.context = cbec_copy_string(yytext); RN(s)
 
@@ -147,8 +147,7 @@ sys_id          [$]{identifier}
 
 [+*%&~!?:;.#@=,'`\-\|\^\(\){}\[\]]     { echo; RN(yytext[0]); }
 
-{identifier}    { int val = cbec_kw_find_keyword(yytext);
-		  echo;
+{identifier}    { echo; int val = cbec_kw_find_keyword(yytext);
                   if (val < 0) {	/* identifier */
                     CRN(CBEC_ID_L);
                   }
@@ -224,7 +223,7 @@ void cbec_lex_duration(
 { int len = strlen(duration);
   char ch;
 
-  switch (duration[1]) {
+  switch (duration[len-1]) {
     case 's' :	r->duration.unit = 1;	break;
     case 'm' :	r->duration.unit = 2;	break;
     case 'h' :	r->duration.unit = 3;	break;

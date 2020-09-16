@@ -22,6 +22,7 @@
 //#include "cbec_int.h"
 
 extern FILE *cbec_in;
+extern int cbec_lex(void); 
 int cbec_parse(void);
 void cbec_lex_restart(void);
 
@@ -84,6 +85,13 @@ int cbec_main_parser(
   cbec_lineno    = 1;
   ///cbec_pt        = cbec_main_pt_init(vm);
 
+/* Leo: lex testing
+  int n, i;
+  for( i = 0; i <30;  i++) {
+    n = cbec_lex();
+    printf("\t\ti: %d, token = %d\n", i, n);
+  }
+  */
   if(cbec_parse() || cbec_parser_err_count) {
     if (cbec_parser_err_count == 0) {
       cbec_msg_err("Parsing Error near EOF.\n");

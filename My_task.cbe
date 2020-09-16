@@ -1,0 +1,129 @@
+task task_littering (objects, events) // objects, events typed set
+define set people every (P is "person" in objects)
+define set trash  every (T in objects) where T is "can" or T is "bottle"
+define set peoplePair every (P is "person" in objects, Q is "person" in objects) where DISTANCE(P, Q) < 2
+
+define sequence littering 
+    start any (P in people, Q in trash) where CARRY(P, Q) 
+    over 2m $print("abort", P, Q)                // over 2 min, abort // Leo: 但是這看起來只是普通 over (因為下面也有其他普通的 over) + print，沒看到 abort 的動作
+    lose 2s $print("lose track of P", P, Q)      // lose track of P, Q, abort
+
+
+    [0]     not CARRY(P, Q) repeat 3 goto [2]   // CARRY is relation func
+            over 10s goto [1]                   // timeout 10s if nothing
+
+    [1]     not CARRY(P, Q) goto [3]            // boolean expression and action
+
+    [[2]]   $print("No trashing")                // print() is system func
+
+    [[3]]   $print("trashing", P)                // print() is system func
+            $raise("littering", P)               // raise() is system funcfor event
+
+define sequence passBagToAnother
+    start any (P in people, Q in objects) where Q is "bag" and CARRY(P,Q)
+    over 10m $print("abort", P, Q) 
+    lose 2s $print("lose track of P", P, Q)
+    
+    [0]     not CARRY(P, Q) goto [4] 
+            over 10s goto [1] 
+
+    [1]     not CARRY(P, Q) goto [2]
+
+    [2]     any (R in people) where CARRY(R, Q) goto [3]
+
+    [[3]]   $print("pass Bag To Another") 
+            $raise("passing bag", P, R) 
+
+    [[4]]   $print("No passing in 10 minutes")
+
+
+define sequence unattendedBag
+    start any (P is "bag" in objects, Q in people) where P["speed"] LT 2 and not OVERLAP(Q, P) // Leo: LT 是 <，<= 是不是 LTE ??
+    over 1d print("abort")
+    lose 2s
+
+    [0]     any (Q in people) where |P["speed"] - Q["speed"]| LT 2 and OVERLAP(Q, P) goto [1]
+            over 30s goto [2]               // no person around in 30s
+
+    [[1]]   print("this bag is attended: ", P) 
+
+    [[2]]   print("unattendedBag: ", P) 
+            raise("unattendedBag", P)       // raise event
+ 
+
+define sequence tagging 
+    start every (P in people, Q is not "person" in objects)
+
+    [[0]] tag(P, Q)
+
+
+define sequence walkThenStop
+    start any (P in people) where P["speed"] GT 2 
+    over 10m print("abort")
+    lose 2s print("lose track", P)
+
+    [0]     (P["speed"] LE 2)  goto [1]
+
+    [[1]]   print("walking person stop: ", P) 
+            raise("walkThenStop", P) // raise event
+
+
+
+
+define sequence restricedAreas
+    start any (P in people) where RestrictedArea(P)
+    over 10m 
+    lose 2s
+    
+    [0]     RestrictedArea(P) repeat 10 goto [1]
+            over 10s goto [2]
+    [[1]]   print("person in restriced areas", P) 
+            raise("person in restriced areas", P) // raise event
+    [[2]]   print("this person leave restricedAreas")
+
+
+define sequence fighting
+    start any (P, Q in peoplePair) where HANDSUP(P) or HANDSUP(Q) 
+    over 10m print("abort")
+    lose 2s 
+
+    [0]     repeat 10 goto [[2]]
+            log("behaviorLog", P, Q)
+            HANDSDOWN(P) and HANDSDOWN(Q) goto [1]  // Leo: 是不是該 goto [3] ?
+
+    [1]     log("behaviorLog", P, Q)     
+            HANDSUP(P) or HANDSUP(Q) goto [0] 
+            over 30s goto [1]
+
+    [[2]]   print("Fighting", P, Q)   // Leo: 之前的 log() 只是記錄，這裡沒有 analyze log 怎麼知道是 fighting ?
+            raise("Fighting detected", "behaviorLog")
+
+    [[3]]   print("Not fighting", P, Q)  // Leo: 沒有 state 進來這
+
+
+define sequence handleEvent
+    start event E "startCapture"
+
+    [0]     any (P in people) log("people is captured", P) 
+            event E "endCapture" goto [[1]]   // Leo: 如果收到 E 就 goto [1]
+            over 10m goto [[2]]
+
+    [[1]]   print("end ")
+
+    [[2]]   print("abort")
+
+
+
+// Leo: 以下看不太懂
+
+// define task go code
+define struct 
+{
+    data int
+}
+
+define function capture // pass sequence struct as the input parameter seq
+{
+    // go code, self
+    data = data++
+}

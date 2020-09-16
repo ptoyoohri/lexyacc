@@ -79,7 +79,7 @@ cbec_start		: CBEC_TASK_K func_name define_stmts
 /* ------------------------------------------------ */
 
 func_name		: CBEC_ID_L '(' arguements. ')'
-			 { printf("func-Id %s ",$1.context); }
+			 { printf("\nfunc-Id: , $1: %s \t $3: %s\t $4: %s\n",$1.context, $3.context, $4.context); }
 			;
 
   arguements.		: arguements
@@ -87,36 +87,37 @@ func_name		: CBEC_ID_L '(' arguements. ')'
 			;
 
   arguements		: arguements ',' arguement
-			| arguement
+			| arguement { $$ = $1; }
 			;
 
   arguement		: CBEC_ID_L
-			 { printf("Id %s ",$1.context); }
+			 { printf("Id: %s ",$1.context); }
 			| constant
-			;
+			{ $$ = $1;} ;
 
   constant		: CBEC_INT_L
-			  { printf("int: %d",$1.value); }
+			  { $$ = $1; printf("int: %d",$1.value); }
 			| CBEC_REAL_L
-			  { printf("real: %f",$1.real); }
+			  { $$ = $1; printf("real: %f",$1.real); }
 			| CBEC_STRING_L
-			  { printf("str: %s",$1.context); }
+			  { $$ = $1; printf("str: %s",$1.context); }
 			| CBEC_DURATION_L
-			  { printf("int: %d %d",$1.duration.time, $1.duration.unit); 	/* 1:s,2:m,3:h */ }
+			  { $$ = $1; printf("int: %d %d",$1.duration.time, $1.duration.unit); 	/* 1:s,2:m,3:h */ }
 			;
 
 /* ================================================ */
 
-define_set_stmt		: CBEC_DEFINE_K CBEC_SET_K CBEC_ID_L set_stmt
+
+define_set_stmt		: CBEC_DEFINE_K  CBEC_SET_K CBEC_ID_L set_stmt
 			  { printf("ID: %s",$3.context); }
 			;
 
-  set_stmt		: qualifier '(' set_parameters ')' set_condition.
+  set_stmt		: qualifier '(' set_parameters ')' set_condition. { /*printf("idenfy set_condition: %s\n", $5); */}
 			;
 
-  qualifier		: CBEC_EVERY_K
+  qualifier		: CBEC_EVERY_K 
 			  { $$.value = 1; /* for every */ }
-			| CBEC_ANY_K
+			| CBEC_ANY_K 
 			  { $$.value = 2; /* for any */ }
 			;
 
@@ -129,14 +130,14 @@ define_set_stmt		: CBEC_DEFINE_K CBEC_SET_K CBEC_ID_L set_stmt
 			;
 
     is_type.		: CBEC_IS_K CBEC_STRING_L
-			  { $$ = $2; }
+			  { $$ = $2; printf("is detected, %s, %s\n", $1, $2); }
 			|
 			  { $$.context = NULL; }
 			;
 
-  set_condition.	: CBEC_WHERE_K cond_expr
+  set_condition.	: CBEC_WHERE_K cond_expr { /*printf("idenfy cond_expr: %s\n", $2); */}
 			  { $$ = $2; }
-			|
+			| 
 			  { /* $$.exp_obj = NULL; */ }
 			;
 
@@ -144,13 +145,13 @@ define_set_stmt		: CBEC_DEFINE_K CBEC_SET_K CBEC_ID_L set_stmt
 
 cond_expr		: cond_expr CBEC_OR_K cond_expr1
 			  { }
-			| cond_expr1
+			| cond_expr1  { /*printf("idenfy cond_expr1: %s\n", $1); */}
 			  { $$ = $1; }
 			;
 
   cond_expr1		: cond_expr1 CBEC_AND_K cond_stmt
 			  { }
-			| cond_stmt
+			| cond_stmt { /* printf("idenfy cond_stmt: %s\n", $1); */ }
 			  { $$ = $1; }
 			;
 
@@ -158,26 +159,26 @@ cond_expr		: cond_expr CBEC_OR_K cond_expr1
 			  {  }
 			| CBEC_ID_L CBEC_IN_K CBEC_ID_L
 			  {  }
-			| bool_stmt
-			| over_stmt
-			| lose_stmt
+			| bool_stmt  { /* printf("idenfy bool_stmt: %s\n", $1); */}
+			
+			
 			| '(' cond_expr ')'
 			  { $$ = $2; }
 			| CBEC_NOT_K cond_stmt
 			  {  }
 			;
 
-    over_stmt		: CBEC_OVER_K CBEC_DURATION_L
+    over_stmt		: CBEC_OVER_K CBEC_DURATION_L action_stmts.
 			  {  }
 			;
 
-    lose_stmt		: CBEC_LOSE_K CBEC_DURATION_L
+    lose_stmt		: CBEC_LOSE_K CBEC_DURATION_L action_stmts.
 			  {  }
 			;
 			
 /* ----------------------------------------------- */
 
-bool_stmt		: func_name
+bool_stmt		: func_name { /* printf("idenfy func_name: %s\n", $1); */ }
 			| func_name bin_op constant
 			| CBEC_ID_L '[' CBEC_STRING_L ']' bin_op constant
 			;
@@ -202,14 +203,18 @@ define_seq_stmt		: CBEC_DEFINE_K CBEC_SEQUENCE_K CBEC_ID_L seq_stmts
 			;
 
   seq_stmts		: seq_stmts seq_stmt
-			| seq_stmt
+			| seq_stmt { /* printf("idenfy seq_stmt: %s\n", $1); */ }
 			;
 
-  seq_stmt		: CBEC_START_K set_stmt
-			| state_stmt
+  seq_stmt		: CBEC_START_K set_stmt over_stmt lose_stmt state_stmts
+			
 			;
 
 /* ----------------------------------------------- */
+
+state_stmts		: state_stmts state_stmt
+				| state_stmt
+				;
 
 state_stmt		: '[' CBEC_INT_L ']' repeat_stmt. state_cond_stmts
 			| CBEC_DBL CBEC_INT_L CBEC_DBR action_stmts.
@@ -225,6 +230,7 @@ state_stmt		: '[' CBEC_INT_L ']' repeat_stmt. state_cond_stmts
 
   state_cond_stmt	: cond_expr repeat_stmt. action_stmts
 			| event_stmt repeat_stmt. action_stmts
+			| over_stmt
 			;
 
     event_stmt		: CBEC_EVENT_K CBEC_ID_L CBEC_STRING_L

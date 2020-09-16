@@ -31,6 +31,13 @@ int cbec_kw_find_keyword(
  
   high = cbec_kw_size - 1;		// 20 - 1
   low  = 0;
+  int j;
+  for (j = 0; j <cbec_kw_size ; j++) {
+    val = strcmp(cbec_kw_tbl[j].kw_name,id);
+    if(val == 0)
+      return cbec_kw_tbl[j].kw_id;
+  }
+  /*
   while (low <= high) {
     i = (low + high) / 2;
     val = strcmp(cbec_kw_tbl[i].kw_name,id);
@@ -41,6 +48,7 @@ int cbec_kw_find_keyword(
     else
       return(cbec_kw_tbl[i].kw_id);
   }
+  */
   return(-1);         /* is not a keyword */
 }
 
