@@ -1,0 +1,116 @@
+/* *****************************************************************************
+// [cbec_main.src]
+//
+//  Copyright 2020 BigData. All Rights Reserved.
+//
+// Except as specified in the license terms of BigData, this material may not be copied, modified,
+// re-published, uploaded, executed, or distributed in any way, in any medium,
+// in whole or in part, without prior written permission from BigData.
+// ****************************************************************************/
+
+/*===================================================
+
+   cbec_main.src -- main routine for cbec parser 
+
+   Author : Ta-Yung Liu
+   Date   : 09/05/2020
+
+ ====================================================*/
+
+//#define CEBC_ALLOC
+
+//#include "cbec_int.h"
+
+extern FILE *cbec_in;
+int cbec_parse(void);
+void cbec_lex_restart(void);
+
+//#include "cbec_prop.src"
+
+/* ================================================= */
+
+#if 0	/* { */
+static
+cbec_pt_tree_t *cbec_main_pt_init(void)
+{ cbec_pt_tree_t *tbl;
+
+  tbl = (cbec_pt_tree_t *) calloc(sizeof(cbec_pt_tree_t),1);
+  return(tbl);
+}
+#endif	/* } */
+
+/* ------------------------------------------------- */
+
+FILE *cbec_main_file_open(
+        char *file_name)
+{ struct stat buf;
+  FILE *fp;
+
+  if (stat(file_name,&buf)==0) {    // exist
+    if (S_ISDIR(buf.st_mode)) {
+      printf("File %s is not able to access.\n",file_name);
+      return(NULL);                     // FAIL
+    }
+  }
+  else {
+    printf("File %s does not exist.\n",file_name);
+    return(NULL);                       // FAIL
+  }
+
+  fp = fopen(file_name,"r");
+  if (fp == NULL) {
+    printf("Error when open file %s.\n",file_name);
+    return(NULL);                       // FAIL
+  }
+  return(fp);
+}
+
+/* ------------------------------------------------- */
+
+int cbec_main_parser(
+        char *file_name)
+{ int code = 0;
+
+  cbec_in = cbec_main_file_open(file_name);
+  if (cbec_in == NULL)
+    return(NULL);
+
+  /* ---- set the initial value for global variables */
+  cbec_lineno		 = 1;
+  cbec_parser_err_count  = 0;
+  cbec_syntax_error      = 0;
+
+  cbec_file_name = cbec_copy_string(file_name);
+  cbec_lineno    = 1;
+  ///cbec_pt        = cbec_main_pt_init(vm);
+
+  if(cbec_parse() || cbec_parser_err_count) {
+    if (cbec_parser_err_count == 0) {
+      cbec_msg_err("Parsing Error near EOF.\n");
+    }
+    code = 1;
+  }
+
+  // fclose(cbec_in); // close cbec_in in cbec_plex_EOF()
+  ///if (code)
+  ///  cbec_misc_free_pt_tree(cbec_pt);
+  return(code);
+}
+
+/* ================================================= */
+
+int main(
+	int argc,
+	char **argv)
+{ int code;
+
+  if (argc != 2) {
+    printf("Usage %s <input.cbec>\n",argv[0]);
+    return(0);
+  }
+  code = cbec_main_parser(argv[1]);
+  return(code);
+}
+
+/* ================================================= */
+

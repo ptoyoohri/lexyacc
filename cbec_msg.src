@@ -1,0 +1,39 @@
+/* *****************************************************************************
+// [cbec_msg.src]
+//
+//  Copyright 2020 BigData. All Rights Reserved.
+//
+// Except as specified in the license terms of BigData, this material may not be copied, modified,
+// re-published, uploaded, executed, or distributed in any way, in any medium,
+// in whole or in part, without prior written permission from BigData.
+// ****************************************************************************/
+
+/*===================================================
+
+   cbec_msg.src -- error handle for cbec parser 
+
+   Author : Ta-Yung Liu
+   Date   : 09/04/00
+
+ ====================================================*/
+
+//#include "cbec_int.h"
+//#include <stdarg.h>
+
+/* ------------------------------------------------ */
+
+void cbec_msg_err(const char* msg,...)
+{
+  va_list         args;       /* Needed for varargs */
+
+  cbec_parser_err_count++;
+  cbec_syntax_error = 1;
+  printf("Parsing error at %s(%d):",cbec_file_name,cbec_lineno);
+
+  va_start(args, msg);
+  printf(msg,args);
+  va_end(args);
+}
+
+/* ------------------------------------------------ */
+

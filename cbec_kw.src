@@ -1,0 +1,49 @@
+/* *****************************************************************************
+// [cbec_kw.src]
+//
+//  Copyright 2020 BigData. All Rights Reserved.
+//
+// Except as specified in the license terms of BigData, this material may not be copied, modified,
+// re-published, uploaded, executed, or distributed in any way, in any medium,
+// in whole or in part, without prior written permission from BigData.
+// ****************************************************************************/
+
+/* ================================================
+
+  cbec_kw.src- keyword of cbec language
+
+  author : Ta-Yung Liu
+  Date   : 09/04/2020
+
+  ================================================= */
+
+//#include "cbec_int.h"
+//#include "cbec_kw.h"
+
+/* ------------------------------------------------ */
+
+/* call in cbec/cbec_lex.l */
+
+int cbec_kw_find_keyword(
+        char *id)
+{ int i,val;
+  int low,high;
+ 
+  high = cbec_kw_size - 1;		// 20 - 1
+  low  = 0;
+  while (low <= high) {
+    i = (low + high) / 2;
+    val = strcmp(cbec_kw_tbl[i].kw_name,id);
+    if (val < 0)
+      low = i + 1 ;
+    else if (val > 0)
+      high = i - 1 ;
+    else
+      return(cbec_kw_tbl[i].kw_id);
+  }
+  return(-1);         /* is not a keyword */
+}
+
+/* ------------------------------------------------ */
+
+/* ================================================ */
