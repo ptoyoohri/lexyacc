@@ -28,9 +28,9 @@
 enum cbec_obj_type_e {
   CBEC_OBJ_CONST,
   CBEC_OBJ_ID,
-  CEBC_OBJ_STMT,
-  CEBC_OBJ_EXP,
-  CEBC_OBJ_END
+  CBEC_OBJ_STMT,
+  CBEC_OBJ_EXP,
+  CBEC_OBJ_END
 };
 typedef enum cbec_obj_type_e cbec_obj_type_e;
 
@@ -48,29 +48,29 @@ typedef enum cbec_const_type_e cbec_const_type_e;
 /* ------------------------------------------------ */
 
 enum cbec_exp_type_e {
-  EXP_GT	= 0,
-  EXP_GE	= 1,
-  EXP_LT	= 2,
-  EXP_LE	= 3,
-  EXP_EQ	= 4,
-  EXP_NE	= 5,
-  EXP_AND	= 6,
-  EXP_OR	= 7,
-  EXP_NOT	= 8,
-  VE_UNKNOW	= 9
+  EXP_GT        = 0,
+  EXP_GE        = 1,
+  EXP_LT        = 2,
+  EXP_LE        = 3,
+  EXP_EQ        = 4,
+  EXP_NE        = 5,
+  EXP_AND       = 6,
+  EXP_OR        = 7,
+  EXP_NOT       = 8,
+  VE_UNKNOW     = 9
 };
 typedef enum cbec_exp_type_e cbec_exp_type_e;
 
-/* ------------------------------------------------ */
+/* ================================================ */
 
-/* object for parsing tree */
+/* object for parsing tree (no use for now) */
 
 class cbec_obj_t {
   public :
-    inline cbec_obj_type_e vlpGetType(void) { return(cbec_type); }
+    //inline enum cbec_obj_type_e vlpGetType(void) { return(cbec_type); }
 
-    cbec_obj_type_e cbec_type;	// cebc_obj_type
-    char *context;		// for ID
+    enum cbec_obj_type_e cbec_type;	// cebc_obj_type
+    char *context;			// for ID
 
     //class cbec_link_t *exp_obj;
     //class cbec_link_t *stmt_obj;

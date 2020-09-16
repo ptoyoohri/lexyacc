@@ -55,8 +55,8 @@ extern char *cbec_text;
 %left ',' 			  /* 1L  comma                    ,               */
 %right '='			  /* 2R  assign                   =               */
 %right '?' ':'			  /* 3R  conditional              ? :             */
-%left CEBC_OR_K                   /* 4L  logical or               ||              */
-%left CEBC_AND_K                  /* 5L  logical and              &&              */
+%left CBEC_OR_K                   /* 4L  logical or               ||              */
+%left CBEC_AND_K                  /* 5L  logical and              &&              */
 %left CBEC_EQ CBEC_NE             /* 9L  =,!=                                     */
 %left CBEC_LT CBEC_GT CBEC_LE CBEC_GE /* 10L relational operators     <,>,<=,>=       */
 %left '+' '-'			  /* 12L add, sub                 +, -            */
@@ -183,11 +183,17 @@ bool_stmt		: func_name
 			;
 
   bin_op		: CBEC_GT
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_GT; }
 			| CBEC_LT
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_LT; }
 			| CBEC_GE
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_GE; }
 			| CBEC_LE
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_LE; }
 			| CBEC_EQ
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_EQ; }
 			| CBEC_NE
+			  { $$.cbec_type = CBEC_OBJ_EXP; $$.op_type = EXP_NE; }
 			;
 
 /* =============================================== */
