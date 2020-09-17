@@ -28,6 +28,7 @@ void cbec_error(char *s);
 int cbec_lex(void);
 
 extern char *cbec_text;
+extern FILE *cbec_out;
 
 /*FILE *cbec_in; */
 
@@ -65,7 +66,7 @@ extern char *cbec_text;
 
 %%
 
-cbec_start		: CBEC_TASK_K func_name define_stmts
+cbec_start		: CBEC_TASK_K task_stmts define_stmts
 			;
 
   define_stmts		: define_stmts define_stmt
@@ -76,17 +77,29 @@ cbec_start		: CBEC_TASK_K func_name define_stmts
 			| define_seq_stmt
 			;
 
+/*-------------------------------------*/
+
+	task_stmts :  CBEC_ID_L '(' task_arguments ')'
+			 { fprintf(cbec_out, "\nTASK_STRUCT(%s, %s)\n", $1.context, $3.context);
+			 fprintf(cbec_out, "\nNEW_TASK(%s)\n", $1.context); }
+			;
+
+  task_arguments	: task_argument ',' task_argument { $1.context = strcat(strcat($1.context, ","), $3.context); $$ = $1; }
+
+  task_argument		: CBEC_ID_L
+			 { printf("Id: %s ",$1.context); }
+
 /* ------------------------------------------------ */
 
 func_name		: CBEC_ID_L '(' arguements. ')'
-			 { printf("\nfunc-Id: , $1: %s \t $3: %s\t $4: %s\n",$1.context, $3.context, $4.context); }
+			 {  }
 			;
 
   arguements.		: arguements
 			|
 			;
 
-  arguements		: arguements ',' arguement
+  arguements		: arguements ',' arguement { $1.context = strcat(strcat($1.context, ","), $3.context); $$ = $1; }
 			| arguement { $$ = $1; }
 			;
 
@@ -200,6 +213,7 @@ bool_stmt		: func_name { /* printf("idenfy func_name: %s\n", $1); */ }
 /* =============================================== */
 
 define_seq_stmt		: CBEC_DEFINE_K CBEC_SEQUENCE_K CBEC_ID_L seq_stmts
+				 { fprintf(cbec_out, "\nSEQUENCE_STRUCT(%s)\n", $3.context); }
 			;
 
   seq_stmts		: seq_stmts seq_stmt

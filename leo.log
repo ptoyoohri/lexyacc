@@ -1,0 +1,34 @@
+File out.pgo does not exist.
+task task_littering (objectsId: objects , eventsId: events )
+TASK_STRUCT(task_littering, objects,events)
+ // objects, events typed set
+define set people every (P is "person"is detected, P, "person"
+ in objects)
+defineID: people set trash  every (T in objects) where T is "can" or T is "bottle"
+defineID: trash set peoplePair every (P is "person"is detected, P, "person"
+ in objects, Q is "person"is detected, Q, "person"
+ in objects) where DISTANCE(PId: P , QId: Q )
+TASK_STRUCT(DISTANCE, P,Q)
+ < 2int: 2
+
+defineID: peoplePair sequence littering 
+    start any (P in people, Q in trash) where CARRY(PId: P , QId: Q )
+TASK_STRUCT(CARRY, P,Q)
+ 
+    over 2m $print("abort"str: "abort", PId: P , QId: Q )                // over 2 min, abort // Leo: 但是這看起來只是普通 over (因為下面也有其他普通的 over) + print，沒看到 abort 的動作
+    lose 2s $print("lose track of P"str: "lose track of P", PId: P , QId: Q )      // lose track of P, Q, abort
+
+
+    [0]     not CARRY(PId: P , QId: Q )
+TASK_STRUCT(CARRY, P,Q)
+ repeat 3 goto [2]   // CARRY is relation func
+            over 10s goto [1]                   // timeout 10s if nothing
+
+    [1]     not CARRY(PId: P , QId: Q )
+TASK_STRUCT(CARRY, P,Q)
+ goto [3]            // boolean expression and action
+
+    [[2]]   $print("No trashing"str: "No trashing")                // print() is system func
+
+    [[3]]   $print("trashing"str: "trashing", PId: P )                // print() is system func
+            $raise("littering"str: "littering", PId: P )               // raise() is system funcfor event

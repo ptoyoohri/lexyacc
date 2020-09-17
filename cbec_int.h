@@ -20,7 +20,7 @@
 
 #ifndef CBEC_INT_H
 #define CBEC_INT_H
-
+#define ECHO
 #ifndef CBEC_ALLOC
 #define CBEC_ALLOC extern
 #define CBEC_init_val(s)

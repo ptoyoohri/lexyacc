@@ -1,0 +1,6 @@
+
+TASK_STRUCT(task_littering, objects,events)
+
+NEW_TASK(task_littering)
+
+SEQUENCE_STRUCT(littering)

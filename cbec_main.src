@@ -21,7 +21,7 @@
 
 //#include "cbec_int.h"
 
-extern FILE *cbec_in;
+extern FILE *cbec_in, *cbec_out;
 extern int cbec_lex(void); 
 int cbec_parse(void);
 void cbec_lex_restart(void);
@@ -66,6 +66,33 @@ FILE *cbec_main_file_open(
   return(fp);
 }
 
+/*-----------------------------------------------*/
+FILE *cbec_out_file_open(
+        char *file_name)
+{ struct stat buf;
+  FILE *fp;
+
+/*
+  if (stat(file_name,&buf)==0) {    // exist
+    if (S_ISDIR(buf.st_mode)) {
+      printf("File %s is not able to access.\n",file_name);
+      return(NULL);                     // FAIL
+    }
+  }
+  else {
+    printf("File %s does not exist.\n",file_name);
+    return(NULL);                       // FAIL
+  }
+  */
+
+  fp = fopen(file_name,"w");
+  if (fp == NULL) {
+    printf("Error when open file %s.\n",file_name);
+    return(NULL);                       // FAIL
+  }
+  return(fp);
+}
+
 /* ------------------------------------------------- */
 
 int cbec_main_parser(
@@ -76,6 +103,7 @@ int cbec_main_parser(
   if (cbec_in == NULL)
     return(NULL);
 
+  cbec_out = cbec_out_file_open("out.pgo");
   /* ---- set the initial value for global variables */
   cbec_lineno		 = 1;
   cbec_parser_err_count  = 0;
@@ -98,7 +126,7 @@ int cbec_main_parser(
     }
     code = 1;
   }
-
+  fclose(cbec_out); 
   // fclose(cbec_in); // close cbec_in in cbec_plex_EOF()
   ///if (code)
   ///  cbec_misc_free_pt_tree(cbec_pt);
