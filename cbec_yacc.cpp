@@ -90,14 +90,57 @@
 /* ---- prefix cbec_ (in cbec_lex.l) */
 void cbec_error(char *s);
 int cbec_lex(void);
-
+char *constantIs;
 extern char *cbec_text;
 extern FILE *cbec_out;
+Task mytask;
 
+char* concatFunc(char funcName[], char params[]) {
+	
+    char *rtn = strcat(strcat(strcat(funcName, "("), params), ")");
+	printf("=====concatFunc(), %s; \n", rtn);
+    return rtn;
+}
+
+char *boolstmtToString(char fullFunc[], cbec_exp_type_e boolOperator, yystype constant) {
+	char *rtn;
+	char *bool_operator;
+	
+	if (boolOperator == 0) {
+		bool_operator[0] = '>';
+	} else if (boolOperator == 1) {
+		bool_operator = ">=";
+	} else if (boolOperator == 2) {
+		bool_operator = "<";
+	} else if (boolOperator == 3) {
+		bool_operator = "<=";
+	} else if (boolOperator == 4) {
+		bool_operator[0] = '=';
+	} else if (boolOperator == 5) {
+		bool_operator = "!=";
+	}
+
+	char *constant_str;
+	if (strcmp(constantIs, "i") == 0) { // int 
+		snprintf(constant_str, sizeof(constant_str), "%d", constant.value);
+	} else if (strcmp(constantIs, "r") == 0) { // real
+		snprintf(constant_str, sizeof(constant_str), "%f", constant.real);
+	} else if (strcmp(constantIs, "d") == 0) { // duration
+		snprintf(constant_str, sizeof(constant_str), "%s", constant.duration); // should convert to sec
+	} else { // string
+		snprintf(constant_str, sizeof(constant_str), "%s", constant.context);
+	}
+
+	rtn = strcat(strcat(fullFunc, bool_operator), constant_str);
+
+//	printf("boolstmtToString(): %s\n", rtn);
+	
+	return rtn;
+}
 /*FILE *cbec_in; */
 
 
-#line 101 "cbec_yacc.cpp" /* yacc.c:339  */
+#line 144 "cbec_yacc.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -189,7 +232,7 @@ int cbec_parse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 193 "cbec_yacc.cpp" /* yacc.c:358  */
+#line 236 "cbec_yacc.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -490,15 +533,15 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    69,    69,    72,    73,    76,    77,    82,    87,    89,
-      94,    98,    99,   102,   103,   106,   108,   111,   113,   115,
-     117,   124,   128,   131,   133,   137,   138,   141,   145,   148,
-     151,   151,   154,   159,   161,   161,   165,   167,   167,   171,
-     173,   175,   178,   180,   184,   188,   194,   195,   196,   199,
-     201,   203,   205,   207,   209,   215,   219,   220,   223,   229,
-     230,   233,   234,   237,   238,   241,   242,   245,   246,   247,
-     250,   251,   254,   255,   258,   259,   262,   263,   268,   269,
-     272,   273,   276
+       0,   112,   112,   115,   116,   119,   120,   125,   133,   135,
+     140,   147,   148,   151,   152,   155,   157,   160,   162,   164,
+     166,   173,   179,   185,   187,   191,   199,   202,   209,   215,
+     218,   218,   221,   226,   228,   228,   232,   234,   234,   238,
+     240,   242,   245,   247,   251,   255,   261,   262,   265,   268,
+     270,   272,   274,   276,   278,   284,   288,   289,   292,   298,
+     299,   302,   303,   306,   307,   310,   311,   314,   315,   316,
+     319,   320,   323,   324,   327,   328,   331,   332,   337,   338,
+     341,   342,   345
 };
 #endif
 
@@ -1377,272 +1420,312 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 83 "cbec_yacc.y" /* yacc.c:1646  */
+#line 126 "cbec_yacc.y" /* yacc.c:1646  */
     { fprintf(cbec_out, "\nTASK_STRUCT(%s, %s)\n", (yyvsp[-3]).context, (yyvsp[-1]).context);
-			 fprintf(cbec_out, "\nNEW_TASK(%s)\n", (yyvsp[-3]).context); }
-#line 1384 "cbec_yacc.cpp" /* yacc.c:1646  */
+			 fprintf(cbec_out, "\nNEW_TASK(%s)\n", (yyvsp[-3]).context); 
+		
+			 mytask.init((yyvsp[-3]).context,  (yyvsp[-1]).context);
+			  }
+#line 1430 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 87 "cbec_yacc.y" /* yacc.c:1646  */
+#line 133 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyvsp[-2]).context = strcat(strcat((yyvsp[-2]).context, ","), (yyvsp[0]).context); (yyval) = (yyvsp[-2]); }
-#line 1390 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1436 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 90 "cbec_yacc.y" /* yacc.c:1646  */
-    { printf("Id: %s ",(yyvsp[0]).context); }
-#line 1396 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 136 "cbec_yacc.y" /* yacc.c:1646  */
+    { printf("Id: %s\n",(yyvsp[0]).context); }
+#line 1442 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 95 "cbec_yacc.y" /* yacc.c:1646  */
-    {  }
-#line 1402 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 141 "cbec_yacc.y" /* yacc.c:1646  */
+    { 			 
+			 	(yyval).context = concatFunc((yyvsp[-3]).context, (yyvsp[-1]).context);
+			
+			 }
+#line 1451 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 102 "cbec_yacc.y" /* yacc.c:1646  */
+#line 151 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyvsp[-2]).context = strcat(strcat((yyvsp[-2]).context, ","), (yyvsp[0]).context); (yyval) = (yyvsp[-2]); }
-#line 1408 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1457 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 103 "cbec_yacc.y" /* yacc.c:1646  */
+#line 152 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); }
-#line 1414 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1463 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 107 "cbec_yacc.y" /* yacc.c:1646  */
+#line 156 "cbec_yacc.y" /* yacc.c:1646  */
     { printf("Id: %s ",(yyvsp[0]).context); }
-#line 1420 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1469 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 109 "cbec_yacc.y" /* yacc.c:1646  */
+#line 158 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]);}
-#line 1426 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1475 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 112 "cbec_yacc.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); printf("int: %d",(yyvsp[0]).value); }
-#line 1432 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 161 "cbec_yacc.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); printf("int: %d",(yyvsp[0]).value); constantIs = "i"; }
+#line 1481 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 114 "cbec_yacc.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); printf("real: %f",(yyvsp[0]).real); }
-#line 1438 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 163 "cbec_yacc.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); printf("real: %f",(yyvsp[0]).real);  }
+#line 1487 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 116 "cbec_yacc.y" /* yacc.c:1646  */
+#line 165 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[0]); printf("str: %s",(yyvsp[0]).context); }
-#line 1444 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1493 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 118 "cbec_yacc.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); printf("int: %d %d",(yyvsp[0]).duration.time, (yyvsp[0]).duration.unit); 	/* 1:s,2:m,3:h */ }
-#line 1450 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 167 "cbec_yacc.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]); printf("int: %d %d",(yyvsp[0]).duration.time, (yyvsp[0]).duration.unit); ;	/* 1:s,2:m,3:h */ }
+#line 1499 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 125 "cbec_yacc.y" /* yacc.c:1646  */
-    { printf("ID: %s",(yyvsp[-1]).context); }
-#line 1456 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 174 "cbec_yacc.y" /* yacc.c:1646  */
+    { printf("ID: %s",(yyvsp[-1]).context); 
+			 // 	mytask.addSet($3.context);
+			  }
+#line 1507 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 128 "cbec_yacc.y" /* yacc.c:1646  */
-    { /*printf("idenfy set_condition: %s\n", $5); */}
-#line 1462 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 180 "cbec_yacc.y" /* yacc.c:1646  */
+    {  printf("idenfy qualifier: %d;\n", (yyval).value);
+				mytask.everyAny((yyval).value);
+  			}
+#line 1515 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 132 "cbec_yacc.y" /* yacc.c:1646  */
+#line 186 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).value = 1; /* for every */ }
-#line 1468 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1521 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 134 "cbec_yacc.y" /* yacc.c:1646  */
+#line 188 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).value = 2; /* for any */ }
-#line 1474 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1527 "cbec_yacc.cpp" /* yacc.c:1646  */
+    break;
+
+  case 25:
+#line 192 "cbec_yacc.y" /* yacc.c:1646  */
+    { 
+			//	  printf("leo: set_parameters: %s: ", $3);
+			//  $1.context = strcat(strcat($1.context, ","), $3.context); $$ = $1;
+			//  printf("leo: set_parameters: %s: ", $$);
+			
+			  }
+#line 1538 "cbec_yacc.cpp" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 199 "cbec_yacc.y" /* yacc.c:1646  */
+    { (yyval) = (yyvsp[0]);}
+#line 1544 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 142 "cbec_yacc.y" /* yacc.c:1646  */
-    {  }
-#line 1480 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 203 "cbec_yacc.y" /* yacc.c:1646  */
+    {  
+				//  printf("\nleo: set_parameters: %s; %s; %s\n", $1, $2, $4);
+				  mytask.setIn((yyvsp[-3]).context, (yyvsp[-2]).context, (yyvsp[0]).context);
+			  }
+#line 1553 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 146 "cbec_yacc.y" /* yacc.c:1646  */
-    { (yyval) = (yyvsp[0]); printf("is detected, %s, %s\n", (yyvsp[-1]), (yyvsp[0])); }
-#line 1486 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 210 "cbec_yacc.y" /* yacc.c:1646  */
+    {  (yyval) = (yyvsp[0]);  // printf("\nleo: is detected: %s, %s\n", $1.context, $2.context); 
+				
+			  }
+#line 1561 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 148 "cbec_yacc.y" /* yacc.c:1646  */
+#line 215 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).context = NULL; }
-#line 1492 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1567 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 151 "cbec_yacc.y" /* yacc.c:1646  */
-    { /*printf("idenfy cond_expr: %s\n", $2); */}
-#line 1498 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 218 "cbec_yacc.y" /* yacc.c:1646  */
+    { printf("idenfy cond_expr: %s\n", (yyvsp[0])); mytask.setCondition((yyvsp[0]).context); }
+#line 1573 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 152 "cbec_yacc.y" /* yacc.c:1646  */
+#line 219 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); }
-#line 1504 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1579 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 154 "cbec_yacc.y" /* yacc.c:1646  */
+#line 221 "cbec_yacc.y" /* yacc.c:1646  */
     { /* $$.exp_obj = NULL; */ }
-#line 1510 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1585 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 160 "cbec_yacc.y" /* yacc.c:1646  */
+#line 227 "cbec_yacc.y" /* yacc.c:1646  */
     { }
-#line 1516 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1591 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 161 "cbec_yacc.y" /* yacc.c:1646  */
+#line 228 "cbec_yacc.y" /* yacc.c:1646  */
     { /*printf("idenfy cond_expr1: %s\n", $1); */}
-#line 1522 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1597 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 162 "cbec_yacc.y" /* yacc.c:1646  */
+#line 229 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); }
-#line 1528 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1603 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 166 "cbec_yacc.y" /* yacc.c:1646  */
+#line 233 "cbec_yacc.y" /* yacc.c:1646  */
     { }
-#line 1534 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1609 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 167 "cbec_yacc.y" /* yacc.c:1646  */
+#line 234 "cbec_yacc.y" /* yacc.c:1646  */
     { /* printf("idenfy cond_stmt: %s\n", $1); */ }
-#line 1540 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1615 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 168 "cbec_yacc.y" /* yacc.c:1646  */
+#line 235 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); }
-#line 1546 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1621 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 172 "cbec_yacc.y" /* yacc.c:1646  */
+#line 239 "cbec_yacc.y" /* yacc.c:1646  */
     {  }
-#line 1552 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1627 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 174 "cbec_yacc.y" /* yacc.c:1646  */
+#line 241 "cbec_yacc.y" /* yacc.c:1646  */
     {  }
-#line 1558 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1633 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 175 "cbec_yacc.y" /* yacc.c:1646  */
-    { /* printf("idenfy bool_stmt: %s\n", $1); */}
-#line 1564 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 242 "cbec_yacc.y" /* yacc.c:1646  */
+    {  printf("===========idenfy bool_stmt: %s\n", (yyvsp[0]).context); (yyval) = (yyvsp[0]);  }
+#line 1639 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 179 "cbec_yacc.y" /* yacc.c:1646  */
+#line 246 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval) = (yyvsp[-1]); }
-#line 1570 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1645 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 181 "cbec_yacc.y" /* yacc.c:1646  */
+#line 248 "cbec_yacc.y" /* yacc.c:1646  */
     {  }
-#line 1576 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1651 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 185 "cbec_yacc.y" /* yacc.c:1646  */
+#line 252 "cbec_yacc.y" /* yacc.c:1646  */
     {  }
-#line 1582 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1657 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 189 "cbec_yacc.y" /* yacc.c:1646  */
+#line 256 "cbec_yacc.y" /* yacc.c:1646  */
     {  }
-#line 1588 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1663 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 194 "cbec_yacc.y" /* yacc.c:1646  */
-    { /* printf("idenfy func_name: %s\n", $1); */ }
-#line 1594 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 261 "cbec_yacc.y" /* yacc.c:1646  */
+    {  printf("idenfy func_name: %s\n", (yyvsp[0]).context); }
+#line 1669 "cbec_yacc.cpp" /* yacc.c:1646  */
+    break;
+
+  case 47:
+#line 262 "cbec_yacc.y" /* yacc.c:1646  */
+    {  printf("idenfy func_name: %s; %d; %d; %s;\n", (yyvsp[-2]).context, (yyvsp[-1]).op_type, (yyvsp[0]), constantIs); 
+				(yyval).context = boolstmtToString((yyvsp[-2]).context, (yyvsp[-1]).op_type, (yyvsp[0]) );
+				}
+#line 1677 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 200 "cbec_yacc.y" /* yacc.c:1646  */
+#line 269 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_GT; }
-#line 1600 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1683 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 202 "cbec_yacc.y" /* yacc.c:1646  */
+#line 271 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_LT; }
-#line 1606 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1689 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 204 "cbec_yacc.y" /* yacc.c:1646  */
+#line 273 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_GE; }
-#line 1612 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1695 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 206 "cbec_yacc.y" /* yacc.c:1646  */
+#line 275 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_LE; }
-#line 1618 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1701 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 208 "cbec_yacc.y" /* yacc.c:1646  */
+#line 277 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_EQ; }
-#line 1624 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1707 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 210 "cbec_yacc.y" /* yacc.c:1646  */
+#line 279 "cbec_yacc.y" /* yacc.c:1646  */
     { (yyval).cbec_type = CBEC_OBJ_EXP; (yyval).op_type = EXP_NE; }
-#line 1630 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1713 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 216 "cbec_yacc.y" /* yacc.c:1646  */
+#line 285 "cbec_yacc.y" /* yacc.c:1646  */
     { fprintf(cbec_out, "\nSEQUENCE_STRUCT(%s)\n", (yyvsp[-1]).context); }
-#line 1636 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1719 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 220 "cbec_yacc.y" /* yacc.c:1646  */
+#line 289 "cbec_yacc.y" /* yacc.c:1646  */
     { /* printf("idenfy seq_stmt: %s\n", $1); */ }
-#line 1642 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1725 "cbec_yacc.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 1646 "cbec_yacc.cpp" /* yacc.c:1646  */
+#line 1729 "cbec_yacc.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

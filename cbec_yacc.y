@@ -26,10 +26,53 @@
 /* ---- prefix cbec_ (in cbec_lex.l) */
 void cbec_error(char *s);
 int cbec_lex(void);
-
+char *constantIs;
 extern char *cbec_text;
 extern FILE *cbec_out;
+Task mytask;
 
+char* concatFunc(char funcName[], char params[]) {
+	
+    char *rtn = strcat(strcat(strcat(funcName, "("), params), ")");
+	printf("=====concatFunc(), %s; \n", rtn);
+    return rtn;
+}
+
+char *boolstmtToString(char fullFunc[], cbec_exp_type_e boolOperator, yystype constant) {
+	char *rtn;
+	char *bool_operator;
+	
+	if (boolOperator == 0) {
+		bool_operator[0] = '>';
+	} else if (boolOperator == 1) {
+		bool_operator = ">=";
+	} else if (boolOperator == 2) {
+		bool_operator = "<";
+	} else if (boolOperator == 3) {
+		bool_operator = "<=";
+	} else if (boolOperator == 4) {
+		bool_operator[0] = '=';
+	} else if (boolOperator == 5) {
+		bool_operator = "!=";
+	}
+
+	char *constant_str;
+	if (strcmp(constantIs, "i") == 0) { // int 
+		snprintf(constant_str, sizeof(constant_str), "%d", constant.value);
+	} else if (strcmp(constantIs, "r") == 0) { // real
+		snprintf(constant_str, sizeof(constant_str), "%f", constant.real);
+	} else if (strcmp(constantIs, "d") == 0) { // duration
+		snprintf(constant_str, sizeof(constant_str), "%s", constant.duration); // should convert to sec
+	} else { // string
+		snprintf(constant_str, sizeof(constant_str), "%s", constant.context);
+	}
+
+	rtn = strcat(strcat(fullFunc, bool_operator), constant_str);
+
+//	printf("boolstmtToString(): %s\n", rtn);
+	
+	return rtn;
+}
 /*FILE *cbec_in; */
 
 %}
@@ -81,18 +124,24 @@ cbec_start		: CBEC_TASK_K task_stmts define_stmts
 
 	task_stmts :  CBEC_ID_L '(' task_arguments ')'
 			 { fprintf(cbec_out, "\nTASK_STRUCT(%s, %s)\n", $1.context, $3.context);
-			 fprintf(cbec_out, "\nNEW_TASK(%s)\n", $1.context); }
+			 fprintf(cbec_out, "\nNEW_TASK(%s)\n", $1.context); 
+		
+			 mytask.init($1.context,  $3.context);
+			  }
 			;
 
   task_arguments	: task_argument ',' task_argument { $1.context = strcat(strcat($1.context, ","), $3.context); $$ = $1; }
 
   task_argument		: CBEC_ID_L
-			 { printf("Id: %s ",$1.context); }
+			 { printf("Id: %s\n",$1.context); }
 
 /* ------------------------------------------------ */
 
 func_name		: CBEC_ID_L '(' arguements. ')'
-			 {  }
+			 { 			 
+			 	$$.context = concatFunc($1.context, $3.context);
+			
+			 }
 			;
 
   arguements.		: arguements
@@ -109,23 +158,28 @@ func_name		: CBEC_ID_L '(' arguements. ')'
 			{ $$ = $1;} ;
 
   constant		: CBEC_INT_L
-			  { $$ = $1; printf("int: %d",$1.value); }
+			  { $$ = $1; printf("int: %d",$1.value); constantIs = "i"; }
 			| CBEC_REAL_L
-			  { $$ = $1; printf("real: %f",$1.real); }
+			  { $$ = $1; printf("real: %f",$1.real);  }
 			| CBEC_STRING_L
 			  { $$ = $1; printf("str: %s",$1.context); }
 			| CBEC_DURATION_L
-			  { $$ = $1; printf("int: %d %d",$1.duration.time, $1.duration.unit); 	/* 1:s,2:m,3:h */ }
+			  { $$ = $1; printf("int: %d %d",$1.duration.time, $1.duration.unit); ;	/* 1:s,2:m,3:h */ }
 			;
 
 /* ================================================ */
 
 
 define_set_stmt		: CBEC_DEFINE_K  CBEC_SET_K CBEC_ID_L set_stmt
-			  { printf("ID: %s",$3.context); }
+			  { printf("ID: %s",$3.context); 
+			 // 	mytask.addSet($3.context);
+			  }
 			;
 
-  set_stmt		: qualifier '(' set_parameters ')' set_condition. { /*printf("idenfy set_condition: %s\n", $5); */}
+  set_stmt		: qualifier '(' set_parameters ')' set_condition. 
+  			{  printf("idenfy qualifier: %d;\n", $$.value);
+				mytask.everyAny($$.value);
+  			}
 			;
 
   qualifier		: CBEC_EVERY_K 
@@ -134,21 +188,34 @@ define_set_stmt		: CBEC_DEFINE_K  CBEC_SET_K CBEC_ID_L set_stmt
 			  { $$.value = 2; /* for any */ }
 			;
 
-  set_parameters	: set_parameters ',' set_parameter
-			| set_parameter
+  set_parameters	: set_parameters ',' set_parameter 
+  			{ 
+			//	  printf("leo: set_parameters: %s: ", $3);
+			//  $1.context = strcat(strcat($1.context, ","), $3.context); $$ = $1;
+			//  printf("leo: set_parameters: %s: ", $$);
+			
+			  }
+			
+			| set_parameter { $$ = $1;} 
 			;
 
     set_parameter	: CBEC_ID_L is_type. CBEC_IN_K CBEC_ID_L
-			  {  }
+			  {  
+				//  printf("\nleo: set_parameters: %s; %s; %s\n", $1, $2, $4);
+				  mytask.setIn($1.context, $2.context, $4.context);
+			  }
 			;
 
     is_type.		: CBEC_IS_K CBEC_STRING_L
-			  { $$ = $2; printf("is detected, %s, %s\n", $1, $2); }
+			  {  $$ = $2;  // printf("\nleo: is detected: %s, %s\n", $1.context, $2.context); 
+				
+			  }
+
 			|
 			  { $$.context = NULL; }
 			;
 
-  set_condition.	: CBEC_WHERE_K cond_expr { /*printf("idenfy cond_expr: %s\n", $2); */}
+  set_condition.	: CBEC_WHERE_K cond_expr { printf("idenfy cond_expr: %s\n", $2); mytask.setCondition($2.context); }
 			  { $$ = $2; }
 			| 
 			  { /* $$.exp_obj = NULL; */ }
@@ -172,7 +239,7 @@ cond_expr		: cond_expr CBEC_OR_K cond_expr1
 			  {  }
 			| CBEC_ID_L CBEC_IN_K CBEC_ID_L
 			  {  }
-			| bool_stmt  { /* printf("idenfy bool_stmt: %s\n", $1); */}
+			| bool_stmt  {  printf("===========idenfy bool_stmt: %s\n", $1.context); $$ = $1;  }
 			
 			
 			| '(' cond_expr ')'
@@ -191,8 +258,10 @@ cond_expr		: cond_expr CBEC_OR_K cond_expr1
 			
 /* ----------------------------------------------- */
 
-bool_stmt		: func_name { /* printf("idenfy func_name: %s\n", $1); */ }
-			| func_name bin_op constant
+bool_stmt		: func_name {  printf("idenfy func_name: %s\n", $1.context); }
+			| func_name bin_op constant {  printf("idenfy func_name: %s; %d; %d; %s;\n", $1.context, $2.op_type, $3, constantIs); 
+				$$.context = boolstmtToString($1.context, $2.op_type, $3 );
+				}
 			| CBEC_ID_L '[' CBEC_STRING_L ']' bin_op constant
 			;
 

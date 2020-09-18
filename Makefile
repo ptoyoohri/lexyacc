@@ -44,7 +44,7 @@ OBJS    = cbec$(POLY_OBJ) \
 		  cbec_yacc$(POLY_OBJ)
 
 all: cbec.h cbec_int.h cbec_kw.h cbec_yacc.h cbec.cpp cbec_lex.cpp cbec_yacc.cpp
-	cc cbec.cpp cbec_lex.cpp cbec_yacc.cpp -o cbec
+	g++ cbec.cpp cbec_lex.cpp cbec_yacc.cpp -o cbec
 
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 

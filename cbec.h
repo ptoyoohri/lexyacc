@@ -20,8 +20,15 @@
 #ifndef CBEC_H
 #define CBEC_H
 
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string>
+
+using namespace std;
+ 
+#define FIX_SIZE 8
+#define WHERE_SIZE 1024
 
 /* ------------------------------------------------ */
 
@@ -169,5 +176,94 @@ void cbec_msg_err(char *msg, ...);
 /* ================================================ */
 
 #endif
+
+
+class Action {
+public:
+    char    *actionClause;
+    
+};
+
+
+
+class Timer {
+    char  *duration; // 2m
+    Action    actions;
+};
+
+class In {
+    public:
+        char *varName; // P
+        char *isName;   // if it is not null, means it has "is" 
+        char *inSetName; // in a set
+        
+};
+
+
+class Condition {
+public:
+    char    *conditionClause;
+    int     repeat;
+    Action    actions;
+}; 
+
+
+class State {
+    public:
+        int stateIndex;
+        bool    end;
+        Condition   condtions[FIX_SIZE];
+        Timer       timeout;
+
+        Action    actions; // it will execute when instance enther this state
+}; 
+
+
+class Set {
+    public:
+        char *setName; // People
+        int everyAny; // 1:every or 2: any
+        In  defineIn; //  (P is "person" in objects) where P .....
+        char *conditionClause;
+};
+
+
+class Sequence {
+    public:
+        char *sequenceName;
+        char everyAny;
+        In  startIn[FIX_SIZE];
+        Timer   Over;
+        Timer   Lose;
+
+        State   states[FIX_SIZE];
+
+};
+
+
+class Task {
+    public:
+    char *taskName;
+    char *objectsName; 
+    char *evnetsName;
+
+    Set         sets[FIX_SIZE];
+  
+
+    Sequence    sequences[FIX_SIZE];
+
+    int countSet;
+    int countSequence;
+
+
+    void init(char [], char []);
+    void setIn(char [], char [], char []);
+    void everyAny(int);
+    void setCondition(char []);
+   
+ //   void addFunc(char [], char[]);
+  //  void setCondition(char []);
+};
+
 
 
